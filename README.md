@@ -6,5 +6,5 @@
 2. open the subfolder `RandalsVideoStore.Api` in VS Code. It should ask to add resources; press yes.
 3. open a terminal
 4. `dotnet watch run`
-5. Navigate to one of the displayed <https://localhost:5000/swagger/index.html>.
+5. <https://localhost:5000/swagger/index.html>.
 6. Behold!
