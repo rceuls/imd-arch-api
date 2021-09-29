@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using RandalsVideoStore.API.Domain;
 
 namespace RandalsVideoStore.API.Controllers
@@ -7,6 +8,9 @@ namespace RandalsVideoStore.API.Controllers
     // for transferring data between layers of the application.
     public class CreateMovie
     {
+        ///<summary>
+        /// Title of the movie
+        ///</summary>
         public string Title { get; set; }
         public int Year { get; set; }
         public Genre[] Genres { get; set; }
@@ -19,12 +23,22 @@ namespace RandalsVideoStore.API.Controllers
         public string Id { get; set; }
         public string Title { get; set; }
         public int Year { get; set; }
+        public string FormattedYear { get; set; }
+        public Genre[] Genres { get; set; }
 
         public static ViewMovie FromModel(Movie movie) => new ViewMovie
         {
             Id = movie.Id.ToString(),
             Title = movie.Title,
-            Year = movie.Year
+            Year = movie.Year,
+            Genres = movie.Genres,
+            FormattedYear = FormatYear(movie.Year),
         };
+
+        private static string FormatYear(int year)
+        {
+            var yearAsString = year.ToString();
+            return yearAsString.Length == 4 ? "'" + yearAsString.Substring(2, 2) : yearAsString;
+        }
     }
 }

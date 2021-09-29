@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using RandalsVideoStore.API.Domain;
 
 namespace RandalsVideoStore.API.Controllers
 {
@@ -12,22 +12,22 @@ namespace RandalsVideoStore.API.Controllers
     [Route("movies")]
     public class MovieController : ControllerBase
     {
-
         // everything you use on _logger will end up on STDOUT (the terminal where you started your process)
         private readonly ILogger<MovieController> _logger;
 
         public MovieController(ILogger<MovieController> logger) => _logger = logger;
 
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)] // when we got a single result
-        [ProducesResponseType(StatusCodes.Status204NoContent)] // no results
+        [ProducesResponseType(typeof(IEnumerable<ViewMovie>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public IActionResult Get(string titleStartsWith) =>
             Ok(MovieProvider.StaticMovieList
                 .Select(ViewMovie.FromModel)
-                .FirstOrDefault(x => x.Title.StartsWith(titleStartsWith ?? string.Empty, true, CultureInfo.InvariantCulture)));
+                .Where(x => x.Title.StartsWith(titleStartsWith ?? string.Empty, true, CultureInfo.InvariantCulture))
+                .ToList());
 
         [HttpGet("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ViewMovie), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetById(string id)
         {
@@ -75,8 +75,8 @@ namespace RandalsVideoStore.API.Controllers
             }
         }
 
-        [HttpPost()]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [HttpPut()]
+        [ProducesResponseType(typeof(ViewMovie), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateMovie(CreateMovie movie)
         {
