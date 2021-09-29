@@ -21,7 +21,10 @@ namespace RandalsVideoStore.API.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)] // when we got a single result
         [ProducesResponseType(StatusCodes.Status204NoContent)] // no results
-        public IActionResult Get(string titleStartsWith) => Ok(MovieProvider.StaticMovieList.FirstOrDefault(x => x.Title.StartsWith(titleStartsWith ?? string.Empty, true, CultureInfo.InvariantCulture)));
+        public IActionResult Get(string titleStartsWith) =>
+            Ok(MovieProvider.StaticMovieList
+                .Select(ViewMovie.FromModel)
+                .FirstOrDefault(x => x.Title.StartsWith(titleStartsWith ?? string.Empty, true, CultureInfo.InvariantCulture)));
 
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -33,7 +36,7 @@ namespace RandalsVideoStore.API.Controllers
                 var movie = MovieProvider.StaticMovieList.FirstOrDefault(x => x.Id == Guid.Parse(id));
                 if (movie != null)
                 {
-                    return Ok(movie);
+                    return Ok(ViewMovie.FromModel(movie));
                 }
                 else
                 {
@@ -80,8 +83,8 @@ namespace RandalsVideoStore.API.Controllers
             try
             {
                 _logger.LogInformation($"Cool, creating a new movie");
-                var createdMovie = new Movie(Guid.NewGuid(), movie.Title, movie.Year, movie.Genres);
-                return CreatedAtAction(nameof(GetById), new { id = createdMovie.Id.ToString() }, createdMovie);
+                var createdMovie = movie.ToMovie();
+                return CreatedAtAction(nameof(GetById), new { id = createdMovie.Id.ToString() }, ViewMovie.FromModel(createdMovie));
             }
             catch (Exception ex)
             {
