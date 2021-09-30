@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using RandalsVideoStore.API.Ports;
 
 namespace RandalsVideoStore.API.Controllers
 {
@@ -12,28 +14,33 @@ namespace RandalsVideoStore.API.Controllers
     [Route("movies")]
     public class MovieController : ControllerBase
     {
+        // noticce we don't care about our actual database implementation; we just pass an interface (== contract)
+        private readonly IDatabase _database;
+
         // everything you use on _logger will end up on STDOUT (the terminal where you started your process)
         private readonly ILogger<MovieController> _logger;
 
-        public MovieController(ILogger<MovieController> logger) => _logger = logger;
+        public MovieController(ILogger<MovieController> logger, IDatabase database)
+        {
+            _database = database;
+            _logger = logger;
+        }
 
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<ViewMovie>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public IActionResult Get(string titleStartsWith) =>
-            Ok(MovieProvider.StaticMovieList
-                .Select(ViewMovie.FromModel)
-                .Where(x => x.Title.StartsWith(titleStartsWith ?? string.Empty, true, CultureInfo.InvariantCulture))
-                .ToList());
+        public async Task<IActionResult> Get(string titleStartsWith) =>
+            Ok((await _database.GetAllMovies(titleStartsWith))
+                .Select(ViewMovie.FromModel).ToList());
 
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ViewMovie), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetById(string id)
+        public async Task<IActionResult> GetById(string id)
         {
             try
             {
-                var movie = MovieProvider.StaticMovieList.FirstOrDefault(x => x.Id == Guid.Parse(id));
+                var movie = await _database.GetMovieById(Guid.Parse(id));
                 if (movie != null)
                 {
                     return Ok(ViewMovie.FromModel(movie));
@@ -54,14 +61,15 @@ namespace RandalsVideoStore.API.Controllers
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteById(string id)
+        public async Task<IActionResult> DeleteById(string id)
         {
             try
             {
-                var movie = MovieProvider.StaticMovieList.FirstOrDefault(x => x.Id == Guid.Parse(id));
+                var parsedId = Guid.Parse(id);
+                var movie = await _database.GetMovieById(parsedId);
                 if (movie != null)
                 {
-                    _logger.LogInformation($"Cool, going to delete {movie.Title} ({id})");
+                    await _database.DeleteMovie(parsedId);
                     return NoContent();
                 }
                 else
@@ -71,6 +79,7 @@ namespace RandalsVideoStore.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"Got an error for {nameof(DeleteById)}");
                 return BadRequest(ex.Message);
             }
         }
@@ -78,16 +87,17 @@ namespace RandalsVideoStore.API.Controllers
         [HttpPut()]
         [ProducesResponseType(typeof(ViewMovie), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult CreateMovie(CreateMovie movie)
+        public async Task<IActionResult> PersistMovie(CreateMovie movie)
         {
             try
             {
-                _logger.LogInformation($"Cool, creating a new movie");
                 var createdMovie = movie.ToMovie();
-                return CreatedAtAction(nameof(GetById), new { id = createdMovie.Id.ToString() }, ViewMovie.FromModel(createdMovie));
+                var persistedMovie = await _database.PersistMovie(createdMovie);
+                return CreatedAtAction(nameof(GetById), new { id = createdMovie.Id.ToString() }, ViewMovie.FromModel(persistedMovie));
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"Got an error for {nameof(PersistMovie)}");
                 return BadRequest(ex.Message);
             }
         }

@@ -8,14 +8,11 @@ namespace RandalsVideoStore.API.Controllers
     // for transferring data between layers of the application.
     public class CreateMovie
     {
-        ///<summary>
-        /// Title of the movie
-        ///</summary>
         public string Title { get; set; }
         public int Year { get; set; }
-        public Genre[] Genres { get; set; }
+        public Genre Genres { get; set; }
 
-        public Movie ToMovie() => new Movie(Guid.NewGuid(), Title, Year, Genres);
+        public Movie ToMovie() => new Movie { Title = this.Title, Year = this.Year, Genres = this.Genres };
     }
 
     public class ViewMovie
@@ -24,7 +21,7 @@ namespace RandalsVideoStore.API.Controllers
         public string Title { get; set; }
         public int Year { get; set; }
         public string FormattedYear { get; set; }
-        public Genre[] Genres { get; set; }
+        public Genre Genres { get; set; }
 
         public static ViewMovie FromModel(Movie movie) => new ViewMovie
         {
