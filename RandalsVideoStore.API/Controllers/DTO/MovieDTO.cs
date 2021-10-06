@@ -8,11 +8,11 @@ namespace RandalsVideoStore.API.Controllers
     // for transferring data between layers of the application.
     public class CreateMovie
     {
+        public Guid? Id { get; set; }
         public string Title { get; set; }
         public int Year { get; set; }
         public Genre Genres { get; set; }
-
-        public Movie ToMovie() => new Movie { Title = this.Title, Year = this.Year, Genres = this.Genres };
+        public Movie ToMovie() => new Movie { Title = this.Title, Year = this.Year, Genres = this.Genres, Id = this.Id };
     }
 
     public class ViewMovie
@@ -35,7 +35,7 @@ namespace RandalsVideoStore.API.Controllers
         private static string FormatYear(int year)
         {
             var yearAsString = year.ToString();
-            return yearAsString.Length == 4 ? "'" + yearAsString.Substring(2, 2) : yearAsString;
+            return yearAsString.Length == 4 ? $"'{yearAsString.Substring(2, 2)}" : yearAsString;
         }
     }
 }

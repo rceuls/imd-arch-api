@@ -23,8 +23,13 @@ namespace RandalsVideoStore.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // This adds an "entrypoint" for our database. Notice that this also handles things lke connection pooling. The Configuration key can be found in
+            // appsettings.json.
             services.AddDbContext<VideoStoreContext>(options =>
                     options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
+            // Add a dependency to the dependency container. This way, whenever you construct a class containing an
+            // IDatabase dependency it will resolve that interface to an instance of the SqliteDatabase. This instance is managed by the 
+            // container so it's lifecycle should be none of your concern.
             services.AddTransient<IDatabase, SqliteDatabase>();
             services.AddControllers();
             services.AddSwaggerGen(c =>

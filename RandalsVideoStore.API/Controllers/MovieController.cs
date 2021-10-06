@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using RandalsVideoStore.API.Domain;
 using RandalsVideoStore.API.Ports;
 
 namespace RandalsVideoStore.API.Controllers
@@ -20,6 +21,8 @@ namespace RandalsVideoStore.API.Controllers
         // everything you use on _logger will end up on STDOUT (the terminal where you started your process)
         private readonly ILogger<MovieController> _logger;
 
+        // This is called dependency injection; it makes it very easy to test this class as you don't "hardwire" a database in the
+        // test; you pass an interface containing a certain amount of methods. This will become clearer in the following lessons.
         public MovieController(ILogger<MovieController> logger, IDatabase database)
         {
             _database = database;
@@ -52,6 +55,7 @@ namespace RandalsVideoStore.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"Got an error for {nameof(GetById)}");
                 // This is just good practice; you never want to expose a raw exception message. There are some libraries/services to handle this
                 // but it's better to take full control of your code.
                 return BadRequest(ex.Message);
