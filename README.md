@@ -19,6 +19,15 @@ In this project we want to provide an API for accessing the inventory of an earl
 6. <https://localhost:5000/swagger/index.html>.
 7. Behold!
 
+You can also run the tests:
+
+1. clone/download the code
+2. open a terminal
+3. `dotnet test` in the root folder of the project
+4. notice the testrunner in the terminal.
+
+> The reason that you don't need to open the test-project folder is because you I use a .sln file. This is not mandatory but can save you some time. You can also watch the tests: `dotnet watch test --project ./RandalsVideoStore.Tests/RandalsVideoStore.Tests.csproj`. Notic that you need to pass a reference for the project to the testrunner here. For adding your own sln file, take a look at the `dotnet sln` command.
+
 ## Notes
 
 - We use a sqlite database in this project; needless to say this is not production ready. In real use case scenarios you want a decent relational database (PostgreSQL, SqlServer, ...). Using sqlite is nice for debugging purposes; if you want to reset the database you just throw away the .sqlite file and re-run the migration.
